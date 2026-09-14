@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="frontend/public/logo.svg" width="128" alt="Segel emas Lex Machina" />
+  <img src="frontend/public/logo.svg" width="128" alt="Lex Machina golden seal" />
 </p>
 
 <h1 align="center">Lex Machina</h1>
 
 <p align="center">
-  <strong>Hukum dari mesin.</strong> Protokol yang mengatur dirinya sendiri — mengawasi
-  kontrak lain, memverifikasi exploit lewat konsensus validator AI, lalu menyetel
-  dan menulis ulang aturannya sendiri. Tanpa voting.
+  <strong>Law from the machine.</strong> A self-governing protocol — supervising
+  other contracts, verifying exploits through AI-validator consensus, then tuning
+  and rewriting its own rules. With no one voting.
 </p>
 
 <p align="center">
@@ -19,12 +19,12 @@
 
 <p align="center">
   <a href="#live-deployment-studionet"><strong>Live Deployment</strong></a> ·
-  <a href="#cara-kerja-gabungan-end-to-end">Cara Kerja</a> ·
-  <a href="#curator-kurasi-ai-desentral">Curator AI</a> ·
-  <a href="#deploy-frontend-vercel">Deploy ke Vercel</a>
+  <a href="#combined-end-to-end-flow">How It Works</a> ·
+  <a href="#decentralized-ai-curator">AI Curator</a> ·
+  <a href="#deploy-frontend-vercel">Deploy to Vercel</a>
 </p>
 
-> Tema hackathon: **Autonomous Protocols**
+> Hackathon theme: **Autonomous Protocols**
 > *Systems that run themselves. If a contract pauses, tunes or rewrites another
 > contract or its own rules with no one voting, it belongs here.*
 
@@ -32,36 +32,36 @@
 
 ## Live deployment (Studionet)
 
-| Komponen | Alamat |
+| Component | Address |
 |---|---|
-| Governor (v4: profil + antrean listing) | `0x3d0d407Ce907032fa3A48E37cd528b6DD2066ca0` |
+| Governor (v4: profile + listing queue) | `0x3d0d407Ce907032fa3A48E37cd528b6DD2066ca0` |
 | ProtocolVault (Vault-1) | `0x5E29D389a7579aA1c06573E790fA88E8240082bE` |
-| Curator (kurasi AI) | `0x4bc6BCaeDA073602ec3fEd2DD78162077dB333f9` |
-| Wallet deployer | `hackaton-ap2026` (`0xbf6c68d4d99a866870f4db9f9ad4ac64eda42007`) |
+| Curator (AI curation) | `0x4bc6BCaeDA073602ec3fEd2DD78162077dB333f9` |
+| Deployer wallet | `hackaton-ap2026` (`0xbf6c68d4d99a866870f4db9f9ad4ac64eda42007`) |
 
-Deep-link demo (frontend lokal):
+Demo deep-link (local frontend):
 
 ```text
 http://localhost:5173/#/console?gov=0x3d0d407Ce907032fa3A48E37cd528b6DD2066ca0&net=studionet
 ```
 
-Direktori governor: `http://localhost:5173/#/governors` (Governor v4 terverifikasi AI, skor 80).
+Governor directory: `http://localhost:5173/#/governors` (Governor v4 AI-verified, score 80).
 
 ---
 
-## Arsitektur
+## Architecture
 
 ```text
 ┌─────────────────────────┐
 │        Governor         │
 │  (self-governing core)  │
 │                         │
-│  register_protocol      │────▶ mendaftarkan & memantau protocol
-│  request/approve listing│────▶ antrean listing + kurasi owner
-│  propose_halt           │────▶ adjudikasi exploit via LLM consensus → pause
-│  prove_safe             │────▶ adjudikasi aman → resume
-│  monitor_and_tune       │────▶ setel threshold + tulis ulang rules
-│  governor profile       │────▶ nama + deskripsi on-chain
+│  register_protocol      │────▶ register & monitor protocols
+│  request/approve listing│────▶ listing queue + owner curation
+│  propose_halt           │────▶ exploit adjudication via LLM consensus → pause
+│  prove_safe             │────▶ safety adjudication → resume
+│  monitor_and_tune       │────▶ set threshold + rewrite rules
+│  governor profile       │────▶ on-chain name + description
 └────────────┬────────────┘
              │  view() / emit()
              ▼
@@ -69,192 +69,195 @@ Direktori governor: `http://localhost:5173/#/governors` (Governor v4 terverifika
 │     ProtocolVault       │
 │   (governed target)     │
 │                         │
-│  deposit / withdraw     │  (diblokir saat paused)
-│  pause / unpause        │  (hanya Governor)
+│  deposit / withdraw     │  (blocked while paused)
+│  pause / unpause        │  (Governor only)
 │  get_state / is_paused  │
 └─────────────────────────┘
 
 ┌─────────────────────────┐
 │         Curator         │
-│ (kurasi AI desentral)   │
+│ (decentralized AI       │
+│  curation)              │
 │                         │
-│  submit_governor        │────▶ review rubrik via LLM consensus → skor 0-100
-│  get_listed_governors   │────▶ direktori governor terverifikasi + badge skor
+│  submit_governor        │────▶ rubric review via LLM consensus → score 0-100
+│  get_listed_governors   │────▶ verified governor directory + score badges
 └─────────────────────────┘
 ```
 
-**Aturan akses:**
+**Access rules:**
 - `register_protocol`, `approve/reject_listing`, `set_protocol_description`,
-  `set_governor_profile` — hanya owner Governor.
-- `request_listing` — siapa pun (protocol harus kompatibel: punya `get_state`
-  dan mendeklarasikan Governor ini); listing aktif hanya setelah approve.
-- `propose_halt`, `prove_safe`, `monitor_and_tune` — permissionless (siapa pun boleh
-  mengajukan), tetapi eksekusi hanya terjadi bila **konsensus validator menyetujui**.
-- `submit_governor` / re-review di Curator — hanya owner governor yang diajukan.
+  `set_governor_profile` — Governor owner only.
+- `request_listing` — anyone (protocol must be compatible: exposes `get_state`
+  and declares this Governor); listing goes live only after approval.
+- `propose_halt`, `prove_safe`, `monitor_and_tune` — permissionless (anyone may
+  submit), but execution happens only if **validator consensus approves**.
+- `submit_governor` / re-review on the Curator — only the submitted governor's owner.
 
-Vault menyimpan deposit simulasi (tidak ada transfer token/payout nyata).
-
----
-
-## Cara kerja gabungan (end-to-end)
-
-1. **Koneksi wallet & network** — hubungkan MetaMask/Rabby lewat EIP-6963.
-   Aplikasi membaca daftar wallet yang benar-benar terdeteksi, meminta akun,
-   lalu memaksa wallet ke network GenLayer yang dipilih. Tidak ada private key
-   yang dibuat atau disimpan aplikasi.
-2. **Governor bawaan** — di Studionet, alamat Governor live sudah tertanam per
-   network; bisa dioverride manual untuk deployment lain.
-3. **Membaca governance state** — risk threshold, versi rules, tune count,
-   exploit count, jumlah protocol, dan teks rules dibaca langsung dari kontrak.
-4. **Register protocol** — owner Governor mendaftarkan vault (owner-only)
-   beserta label dan deskripsi opsional; keduanya tersimpan on-chain dan
-   terbaca lewat `get_protocol_label` / `get_protocol_description`.
-   Satu Governor bisa membawahi banyak protocol; ulangi register per kontrak.
-   Setiap protocol dilacak, dibaca, dan dihalt secara independen.
-4b. **Request listing** — siapa pun bisa mengajukan protocol kompatibel
-   (punya `get_state` + mendeklarasikan Governor ini); owner approve/reject
-   dari panel Listing requests. Label + deskripsi request tersimpan on-chain
-   saat approve.
-4c. **Direktori Governor** — owner Governor mengajukan deployment-nya ke
-   Curator; validator AI menilai rubrik (identitas, rules, threshold,
-   protocol live) 0–100. Skor ≥ bar tampil di halaman Governors dengan
-   badge skor. Tanpa gatekeeper manusia.
-
-## Curator (kurasi AI desentral)
-
-`contracts/Curator.py` — kontrak yang menilai kelayakan Governor lain lewat
-konsensus validator LLM. Alurnya:
-
-1. **Submit** — `submit_governor(addr)`; hanya owner governor yang diajukan
-   (dicek on-chain via `get_governance_state`) yang bisa submit.
-2. **AI review** — validator menilai snapshot on-chain governor dengan rubrik:
-   nama bermakna (0–25), deskripsi bermakna (0–25), rules waras (0–20),
-   threshold 1–200 (0–10), punya protocol live (0–20). Validator sepakat bila
-   putusan listed sama dan selisih skor ≤ 12.
-3. **Listed + badge** — skor ≥ `min_score` (default 70) tampil di
-   `get_listed_governors` beserta nama, deskripsi, dan statistik live.
-4. **Re-review** — owner bisa minta nilai ulang; owner Curator bisa `delist`
-   darurat dan mengatur `min_score` (1–100).
-
-Blok nondet hanya menyentuh local + `gl.nondet` (helper parse di module
-level) sesuai aturan storage doc GenLayer — tanpa warning pickling-storage.
-
-## Membuat protocol sendiri
-
-Kontrak GenLayer apa pun bisa menjadi protocol yang diatur Governor. Salin
-`contracts/ProtocolVault.py` sebagai template dan pertahankan empat hal:
-
-1. Constructor yang menyimpan alamat Governor-nya.
-2. `pause()` — memblokir aksi sensitif (deposit/withdraw/dsb).
-3. `unpause()` — membuka kembali aksi tersebut.
-4. `get_state()` — view yang menyertakan alamat governor (syarat kompatibilitas listing).
-
-Hanya Governor yang boleh memanggil `pause`/`unpause` — tegakkan di dalam
-kontrak (seperti Vault: cek `gl.message.sender_address == governor`). Lalu
-`genvm-lint check`, tulis/ekstensi tes, deploy, dan register dari Console.
-
----
-5. **Report exploit / halt darurat** — siapa pun mengirim claim + evidence.
-   Validator LLM menilai bukti secara independen; bila konsensus confirm,
-   Governor menandai halt dan mem-pause vault lewat `emit`.
-6. **Prove safe / resume** — setelah perbaikan, adjudikasi aman membuka pause.
-7. **Monitor & tune otonom** — Governor membaca metrik semua protocol, LLM
-   memilih `tighten` / `relax` / `hold`; bila berubah, threshold, versi,
-   counter, dan teks rules diperbarui tanpa voting.
-8. **Halaman detail protocol** — status, statistik, aksi, salin alamat/link,
-   dan riwayat transaksi per protocol.
-9. **Duplicate instance** — membaca kode kontrak protocol dari chain, deploy
-   salinan persis, lalu mendaftarkannya (registrasi tetap butuh owner).
-10. **Transaksi & audit** — setiap aksi dilacak (pending → accepted → finalized),
-    bisa dibuka detailnya: votes validator, execution result, triggered tx,
-    stdout/stderr, dan link explorer.
+The Vault holds simulated deposits (no real token transfers/payouts).
 
 ---
 
-## Menjalankan frontend
+## Combined end-to-end flow
+
+1. **Wallet & network connection** — connect MetaMask/Rabby via EIP-6963.
+   The app reads the actually-detected wallet list, requests an account,
+   then forces the wallet onto the selected GenLayer network. No private key
+   is ever created or stored by the app.
+2. **Built-in Governor** — on Studionet, the live Governor address is embedded per
+   network; it can be manually overridden for other deployments.
+3. **Reading governance state** — risk threshold, rules version, tune count,
+   exploit count, protocol count, and rules text are read straight from the contract.
+4. **Register protocol** — the Governor owner registers the vault (owner-only)
+   with an optional label and description; both are stored on-chain and
+   readable via `get_protocol_label` / `get_protocol_description`.
+   One Governor can govern many protocols; repeat registration per contract.
+   Each protocol is tracked, read, and halted independently.
+4b. **Request listing** — anyone can submit a compatible protocol
+   (exposes `get_state` + declares this Governor); the owner approves/rejects
+   from the Listing requests panel. The requested label + description are stored
+   on-chain upon approval.
+4c. **Governor directory** — a Governor owner submits their deployment to the
+   Curator; AI validators score a rubric (identity, rules, threshold,
+   live protocols) 0–100. Scores at or above the bar appear on the Governors page
+   with a score badge. No human gatekeeper.
+
+## Decentralized AI curator
+
+`contracts/Curator.py` — a contract that judges whether other Governors are
+listable, through LLM-validator consensus. The flow:
+
+1. **Submit** — `submit_governor(addr)`; only the submitted governor's owner
+   (checked on-chain via `get_governance_state`) can submit.
+2. **AI review** — validators score the governor's on-chain snapshot against a rubric:
+   meaningful name (0–25), meaningful description (0–25), sane rules (0–20),
+   threshold within 1–200 (0–10), live protocols (0–20). Validators agree when the
+   listed verdict matches and scores differ by ≤ 12.
+3. **Listed + badge** — scores ≥ `min_score` (default 70) appear in
+   `get_listed_governors` with name, description, and live stats.
+4. **Re-review** — owners can request a re-score; the Curator owner can emergency
+   `delist` and set `min_score` (1–100).
+
+Nondet blocks only touch locals + `gl.nondet` (parse helpers live at module
+level) per GenLayer's storage docs — no pickling-storage warnings.
+
+## Building your own protocol
+
+Any GenLayer contract can become a Governor-governed protocol. Copy
+`contracts/ProtocolVault.py` as a template and keep four things:
+
+1. A constructor that stores its Governor's address.
+2. `pause()` — blocks sensitive actions (deposit/withdraw/etc).
+3. `unpause()` — reopens them.
+4. `get_state()` — a view including the governor address (listing-compatibility requirement).
+
+Only the Governor may call `pause`/`unpause` — enforce it inside the
+contract (like the Vault does: check `gl.message.sender_address == governor`). Then
+`genvm-lint check`, write/extend tests, deploy, and register from the Console.
+
+---
+5. **Report exploit / emergency halt** — anyone submits a claim + evidence.
+   LLM validators judge the evidence independently; if consensus confirms,
+   the Governor flags halt and pauses the vault via `emit`.
+6. **Prove safe / resume** — after a fix, a safety adjudication unpauses.
+7. **Autonomous monitor & tune** — the Governor reads every protocol's metrics, the LLM
+   picks `tighten` / `relax` / `hold`; on change, threshold, version,
+   counter, and rules text update with no vote.
+8. **Protocol detail page** — status, stats, actions, address/link copying,
+   and per-protocol transaction history.
+9. **Duplicate instance** — reads a protocol's contract code from the chain, deploys
+   an exact copy, then registers it (registration still needs the owner).
+10. **Transactions & audit** — every action is tracked (pending → accepted → finalized),
+    with drill-down detail: validator votes, execution result, triggered tx,
+    stdout/stderr, and explorer links.
+
+---
+
+## Running the frontend
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# buka http://localhost:5173
+# open http://localhost:5173
 ```
 
-Data siap pakai (Studionet):
+Ready-made data (Studionet):
 
 - Governor: `0x3d0d407Ce907032fa3A48E37cd528b6DD2066ca0`
 - Vault: `0x5E29D389a7579aA1c06573E790fA88E8240082bE`
 - Curator: `0x4bc6BCaeDA073602ec3fEd2DD78162077dB333f9`
-- Contoh claim: `Reentrancy allows repeated withdrawals before balance updates`
-- Contoh evidence: `Call trace shows repeated withdraw transfers with only one balance deduction`
-- Contoh reason aman: `Patch deployed, balances reconciled, re-audit completed; no active drain path remains`
+- Sample claim: `Reentrancy allows repeated withdrawals before balance updates`
+- Sample evidence: `Call trace shows repeated withdraw transfers with only one balance deduction`
+- Sample safe reason: `Patch deployed, balances reconciled, re-audit completed; no active drain path remains`
 
-Halaman: `/` (landing), `/governors` (direktori kurasi AI), `/how-it-works` (panduan), `/console` (live),
-`/protocol/:addr` (detail protocol).
+Pages: `/` (landing), `/governors` (AI-curated directory), `/how-it-works` (guide), `/console` (live),
+`/protocol/:addr` (protocol detail).
 
 ---
 
 ## Deploy
 
-Via CLI (memakai wallet `genlayer` yang sudah dikonfigurasi):
+Via CLI (using a configured `genlayer` wallet):
 
 ```bash
 python deploy/deploy.py --network studionet
 ```
 
-Via script `genlayer-js` (butuh operator key lewat environment, jangan di-commit):
+Via the `genlayer-js` script (operator key through the environment, never commit it):
 
 ```bash
 DEPLOYER_PRIVATE_KEY=0x... node deploy/deploy-frontend.mjs studionet
 ```
 
-Script ini mencetak deep-link console dengan Governor terisi otomatis.
+The script prints a console deep-link with the Governor pre-filled.
 
 ## Deploy frontend (Vercel)
 
 Repo: `https://github.com/dhozil/Lex-Machina`
 
-1. Push repo ini ke GitHub.
-2. Di Vercel: Add New → Project → import `dhozil/Lex-Machina`.
+1. Push this repo to GitHub.
+2. In Vercel: Add New → Project → import `dhozil/Lex-Machina`.
 3. **Root Directory:** `frontend`. Framework preset: Vite. Build Command:
-   `npm run build`. Output Directory: `dist`. Tanpa environment variable.
-4. `frontend/vercel.json` sudah memetakan `/rpc/studionet|testnet_asimov|testnet_bradbury`
-   ke RPC asli (proxy server-side, bebas CORS). Localnet hanya jalan di dev
-   (`vite.config.ts`), karena Vercel tak menjangkau `127.0.0.1`.
+   `npm run build`. Output Directory: `dist`. No environment variables.
+4. `frontend/vercel.json` already maps `/rpc/studionet|testnet_asimov|testnet_bradbury`
+   to the real RPCs (server-side proxy, CORS-free). Localnet only works in dev
+   (`vite.config.ts`), because Vercel cannot reach `127.0.0.1`.
 
 ---
 
-## Verifikasi
+## Verification
 
-- `genvm-lint check contracts/Governor.py` — lulus
-- `genvm-lint check contracts/ProtocolVault.py` — lulus
+- `genvm-lint check contracts/Governor.py` — passes
+- `genvm-lint check contracts/ProtocolVault.py` — passes
 - `gltest tests/` — **29 passed** (20 direct + 9 integration)
-- Live Studionet: register, halt, resume, dan tune terverifikasi end-to-end
-- Frontend: `tsc --noEmit` bersih, `npm run build` sukses
+- Live Studionet: register, halt, resume, and tune verified end-to-end
+- Frontend: clean `tsc --noEmit`, successful `npm run build`
 
-Pengerasan dari review staff GenLayer:
+Hardening from GenLayer staff review:
 
-- Tidak ada float division di logika konsensus (`lv <= 2*vv`, integer math).
-- Claim/evidence/reason wajib non-empty.
-- Validator comparative (rerun + bandingkan verdict), bukan leader-only.
-- `reasoning` LLM tidak disimpan/dipakai untuk keputusan.
-- Runner version di-pin (`py-genlayer:1jb45aa8…`).
+- No float division in consensus logic (`lv <= 2*vv`, integer math).
+- Claim/evidence/reason must be non-empty (plus length caps).
+- Comparative validators (re-run + compare verdicts), not leader-only.
+- LLM `reasoning` is never stored/used for decisions.
+- Runner version pinned (`py-genlayer:1jb45aa8…`).
+- Prompt-injection framing: user inputs treated as untrusted data with delimiters.
+- Nondet blocks never touch contract storage (module-level helpers).
 
 ---
 
-## Struktur repo
+## Repo structure
 
 ```text
-contracts/            Governor.py, ProtocolVault.py
+contracts/            Governor.py, ProtocolVault.py, Curator.py
 deploy/               deploy.py, deploy-frontend.mjs
 frontend/             Vite + React + TS + genlayer-js
 tests/                direct/ + integration/
-gltest.config.yaml    konfigurasi test network
+gltest.config.yaml    test network config
 ```
 
-## Catatan keamanan
+## Security notes
 
-- Frontend tidak pernah meminta/menyimpan private key; signing via ekstensi wallet.
-- Jangan pakai wallet berisi dana berharga untuk demo bila tidak perlu.
-- Selalu verifikasi alamat Governor, network, dan receipt di explorer.
-- Riwayat transaksi di browser hanya metadata lokal, bukan bukti on-chain.
+- The frontend never asks for or stores private keys; signing happens via wallet extensions.
+- Don't use a wallet holding valuable funds for demos unless necessary.
+- Always verify the Governor address, network, and receipts in the explorer.
+- Browser transaction history is local metadata only, not on-chain proof.
