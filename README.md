@@ -1,10 +1,30 @@
-# Lex Machina — Self-Governing Protocol
+<p align="center">
+  <img src="frontend/public/logo.svg" width="128" alt="Segel emas Lex Machina" />
+</p>
 
-> Sistem yang mengatur dirinya sendiri. Satu kontrak Governor mengawasi kontrak lain,
-> memverifikasi exploit lewat konsensus validator berbasis LLM, lalu menyetel dan
-> menulis ulang aturannya sendiri — tanpa voting.
+<h1 align="center">Lex Machina</h1>
 
-Tema hackathon: **Autonomous Protocols**
+<p align="center">
+  <strong>Hukum dari mesin.</strong> Protokol yang mengatur dirinya sendiri — mengawasi
+  kontrak lain, memverifikasi exploit lewat konsensus validator AI, lalu menyetel
+  dan menulis ulang aturannya sendiri. Tanpa voting.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/GenLayer-Studionet_61999-C9A227?style=flat-square" alt="Studionet 61999" />
+  <img src="https://img.shields.io/badge/tests-29_passed-0E7A6D?style=flat-square" alt="29 tests passed" />
+  <img src="https://img.shields.io/badge/frontend-Vite_%2B_React-171309?style=flat-square" alt="Vite + React" />
+  <img src="https://img.shields.io/badge/curated_by-AI_consensus-6D28D9?style=flat-square" alt="AI consensus" />
+</p>
+
+<p align="center">
+  <a href="#live-deployment-studionet"><strong>Live Deployment</strong></a> ·
+  <a href="#cara-kerja-gabungan-end-to-end">Cara Kerja</a> ·
+  <a href="#curator-kurasi-ai-desentral">Curator AI</a> ·
+  <a href="#deploy-frontend-vercel">Deploy ke Vercel</a>
+</p>
+
+> Tema hackathon: **Autonomous Protocols**
 > *Systems that run themselves. If a contract pauses, tunes or rewrites another
 > contract or its own rules with no one voting, it belongs here.*
 
