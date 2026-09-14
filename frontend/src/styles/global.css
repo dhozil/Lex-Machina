@@ -1,0 +1,253 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* Palette — "Porcelain & Brass": a luminous instrument for autonomous systems */
+  --ink: #f4f1e9;
+  --ink-2: #ece5d3;
+  --panel: #fffdf7;
+  --panel-2: #f3ecda;
+  --panel-3: #eae1c9;
+  --line: #bfae7f;
+  --line-soft: #d6c9a6;
+  --text: #171309;
+  --text-soft: #38321f;
+  --muted: #4f4832;
+  --faint: #746a4f;
+  --teal: #0e7a6d;
+  --teal-bright: #0fa08c;
+  --teal-dim: rgba(14, 122, 109, 0.1);
+  --ember: #bc3b1a;
+  --ember-bright: #d54e24;
+  --ember-dim: rgba(188, 59, 26, 0.09);
+  --amber: #8f6607;
+  --amber-dim: rgba(143, 102, 7, 0.1);
+  --violet: #6d28d9;
+  --violet-dim: rgba(109, 40, 217, 0.08);
+  --brass: #97700f;
+  --brass-bright: #c9a227;
+  --brass-deep: #6e4e0c;
+  --brass-dim: rgba(151, 112, 15, 0.12);
+  --gold-grad: linear-gradient(135deg, #e8cb6d 0%, #c9a227 38%, #96700f 72%, #7a5a0b 100%);
+  --shadow-card: 0 1px 2px rgba(23, 19, 9, 0.08), 0 18px 44px -20px rgba(23, 19, 9, 0.3);
+  --shadow-lift: 0 2px 4px rgba(23, 19, 9, 0.06), 0 24px 56px -20px rgba(23, 19, 9, 0.3);
+  --field: #fffefa;
+  --nav-bg: rgba(244, 241, 233, 0.84);
+  --scrim: rgba(23, 19, 9, 0.45);
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Instrument Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  --maxw: 1720px;
+  --nav-h: 68px;
+}
+
+/* Dark mode — obsidian instrument, same brass soul */
+[data-theme="dark"] {
+  --ink: #0a0f16;
+  --ink-2: #0c1219;
+  --panel: #101724;
+  --panel-2: #141d2c;
+  --panel-3: #1a2436;
+  --line: #26344a;
+  --line-soft: #1b2740;
+  --text: #e9eef5;
+  --text-soft: #b9c4d4;
+  --muted: #8c9aad;
+  --faint: #637183;
+  --teal: #2bd4b8;
+  --teal-bright: #52e6cd;
+  --teal-dim: rgba(43, 212, 184, 0.14);
+  --ember: #ff6a3d;
+  --ember-bright: #ff8a63;
+  --ember-dim: rgba(255, 106, 61, 0.14);
+  --amber: #e9b44c;
+  --amber-dim: rgba(233, 180, 76, 0.14);
+  --violet: #a78bfa;
+  --violet-dim: rgba(167, 139, 250, 0.14);
+  --brass-deep: #dcbc55;
+  --brass-dim: rgba(201, 162, 39, 0.16);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 18px 44px -20px rgba(0, 0, 0, 0.7);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.5), 0 28px 60px -20px rgba(0, 0, 0, 0.75);
+  --field: #0c1219;
+  --nav-bg: rgba(10, 15, 22, 0.78);
+  --scrim: rgba(5, 9, 14, 0.72);
+}
+
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(900px 520px at 78% -8%, rgba(201, 162, 39, 0.07), transparent 60%),
+    radial-gradient(720px 420px at 8% 12%, rgba(43, 212, 184, 0.06), transparent 55%),
+    radial-gradient(1200px 900px at 50% 120%, rgba(12, 18, 25, 0.9), transparent 70%);
+}
+
+[data-theme="dark"] body::after {
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(201, 162, 39, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 162, 39, 0.05) 1px, transparent 1px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ambient background: warm porcelain with soft champagne washes */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1000px 560px at 80% -10%, rgba(201, 162, 39, 0.04), transparent 60%),
+    radial-gradient(820px 480px at 6% 8%, rgba(14, 122, 109, 0.025), transparent 55%),
+    radial-gradient(1400px 1000px at 50% 125%, rgba(214, 196, 150, 0.09), transparent 70%);
+}
+
+/* faint bronze engineering grid, only visible on larger screens */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(rgba(110, 78, 12, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 78, 12, 0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to bottom, transparent, black 12%, black 82%, transparent);
+}
+
+@media (max-width: 720px) {
+  body::after {
+    display: none;
+  }
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 560;
+  line-height: 1.06;
+  letter-spacing: -0.018em;
+  margin: 0;
+  color: var(--text);
+  font-optical-sizing: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--brass-bright);
+  color: #1d1503;
+}
+
+/* Utility classes */
+.mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brass-deep);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 2px;
+  background: var(--gold-grad);
+  display: inline-block;
+  border-radius: 2px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 72px);
+}
+
+/* Main body content is ~5% narrower than the header/footer span */
+.container--body {
+  max-width: 1634px;
+}
+
+.section {
+  padding: 88px 0;
+  position: relative;
+}
+
+.hairline {
+  border-top: 1px solid var(--line-soft);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

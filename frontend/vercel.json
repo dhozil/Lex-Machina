@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/rpc/studionet/:path*",
+      "destination": "https://studio.genlayer.com/api/:path*"
+    },
+    {
+      "source": "/rpc/testnet_asimov/:path*",
+      "destination": "https://rpc-asimov.genlayer.com/:path*"
+    },
+    {
+      "source": "/rpc/testnet_bradbury/:path*",
+      "destination": "https://rpc-bradbury.genlayer.com/:path*"
+    }
+  ]
+}

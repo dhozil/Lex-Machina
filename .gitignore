@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+.next/
+*.log
+
+# GenLayer / test artifacts
+artifacts/
+*.tar
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Secrets — never commit keys or passwords
+.env
+.env.local
+*.pem
+*.key
