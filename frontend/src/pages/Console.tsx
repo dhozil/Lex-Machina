@@ -333,9 +333,16 @@ export default function Console() {
         ref,
       };
       setTxs((prev) => [rec, ...prev]);
-      waitForTx(client, hash).then((res) => {
+      waitForTx(client, hash).then(async (res) => {
         setTxs((prev) => prev.map((t) => (t.id === rec.id ? { ...t, ...res } : t)));
-        if (res.status === "finalized" || res.status === "error") loadAll();
+        if (res.status === "finalized" || res.status === "error") {
+          if (network === "studio_next" && res.status === "finalized") {
+            // Studio Next reads can lag finalization by seconds; a refresh
+            // fired too early flashes stale state (e.g. "Unnamed governor").
+            await new Promise((r) => setTimeout(r, 10000));
+          }
+          loadAll();
+        }
         if (res.status === "finalized" && after) after();
       });
     },
@@ -642,8 +649,13 @@ export default function Console() {
                         className="btn btn-primary btn-sm"
                         disabled={!profileName.trim() || busy === "profile"}
                         onClick={() => {
+                          // Optimistic update: the on-chain refresh lags on
+                          // Studio Next, so show the new values immediately.
+                          const name = profileName.trim();
+                          const desc = profileDesc.trim();
+                          setProfile({ name, description: desc, owner: account ?? profile?.owner ?? "" });
                           runAction("profile", "Set governor profile", (c) =>
-                            setGovernorProfile(c, gov, profileName.trim(), profileDesc.trim()),
+                            setGovernorProfile(c, gov, name, desc),
                           );
                           setEditingProfile(false);
                         }}

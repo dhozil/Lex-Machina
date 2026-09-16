@@ -454,7 +454,7 @@ export async function waitForTx(client: Client, hash: string): Promise<{
     const isNext = (client as any).__network === "studio_next";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const waitArgs: any = isNext
-      ? { hash: hash as TransactionHash, waitUntil: "decided", interval: 5000, retries: 144 }
+      ? { hash: hash as TransactionHash, waitUntil: "finalized", interval: 5000, retries: 200 }
       : {
           hash: hash as TransactionHash,
           status: TransactionStatus.ACCEPTED,
