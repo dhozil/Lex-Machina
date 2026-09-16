@@ -39,11 +39,15 @@
 | Curator (AI curation) | `0x55d18CA9d1044EeFa8f955F96F8eBdB152c09Fa8` |
 | Deployer wallet | `0xe8206DC666D66ae1f17df58ff4F485a46Fd19E65` |
 
-Demo deep-link (local frontend):
+Live app: `https://lexmachina.vercel.app/`
+
+Demo deep-link (production):
 
 ```text
-http://localhost:5173/#/console?gov=0xa0c630e337B44e0a269eE1962e003DFb72ca3956&net=studio_next
+https://lexmachina.vercel.app/#/console?gov=0xa0c630e337B44e0a269eE1962e003DFb72ca3956&net=studio_next
 ```
+
+Local equivalent: `http://localhost:5173/#/console?gov=0xa0c630e337B44e0a269eE1962e003DFb72ca3956&net=studio_next`
 
 Verified on Next: register ✅, halt adjudication ✅ (validators deliberate;
 sample evidence rejected with reasoning — conservative by design),
@@ -54,13 +58,36 @@ Demo video: `https://x.com/cobersky/status/2100161864303014136`
 
 ### Steps to verify the governance flow (Studio Next)
 
-1. Open the deep-link above, connect a wallet, approve the switch to chain 61997.
-2. Read the live state (risk threshold, rules version, protocols).
-3. `request_listing` with another compatible vault → approve it from the Listing requests panel.
-4. `propose_halt` with a claim + evidence → independent validators deliberate; the vault pauses only if consensus confirms.
-5. `prove_safe` with a fix reason → safety adjudication unpauses the vault.
-6. `monitor_and_tune` → threshold and rules text update with no vote.
-7. Open `/governors` → Lex Machina appears with its AI score badge (70, listed).
+You only need a browser wallet (MetaMask/Rabby) with a little GEN on Studio Next —
+get it from the 💧 faucet inside `https://studio-dev.genlayer.com`. No private keys,
+no CLI, no build step.
+
+1. **Open the app**: go to the demo deep-link above. The console loads with the
+   Governor `0xa0c630…3956` pre-filled and the network set to Studio Next.
+2. **Connect**: click Connect wallet, pick your wallet, approve the account, then
+   approve the automatic switch to chain **61997** (Studio Next).
+3. **Read the live state**: risk threshold, rules version/text, tune count, and the
+   governed protocol list are read straight from the contract. Open the Vault-1
+   row to see its deposits and status.
+4. **Listing flow**: submit any compatible vault via *Request listing* (anyone can);
+   as the Governor owner, approve it from the *Listing requests* panel and watch it
+   go live with its label.
+5. **Exploit halt**: open *Report exploit*, paste a claim + evidence, submit.
+   Independent LLM validators deliberate on-chain; track the tx (pending →
+   accepted → finalized) and open its detail to see validator votes. If consensus
+   confirms, the vault pauses automatically — no vote.
+6. **Resume**: open *Prove safe*, submit the fix reason. A second adjudication
+   unpauses the vault on confirmation.
+7. **Autonomous tune**: press *Monitor & tune*. The Governor reads protocol metrics
+   and, if warranted, changes its own threshold and rewrites its rules text — with
+   no vote. Refresh to see the new threshold/version.
+8. **AI-curated directory**: open `/governors` (or the Governors page). Lex Machina
+   is listed with its AI score badge (**70, listed ✅**). Governor owners can set
+   name + description, then *Submit for review*; the scoring rubric is explained in
+   How it works (bar 70: name 0–25, description 0–25, rules 0–20, threshold 0–10,
+   live protocols 0–20).
+9. **Cross-check on-chain**: every action links to `https://explorer-studio-dev.genlayer.com`
+   in the transaction log.
 
 ## Live deployment (Studionet, chain 61999)
 
