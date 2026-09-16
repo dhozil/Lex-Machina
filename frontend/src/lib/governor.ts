@@ -182,6 +182,34 @@ export async function readProtocolDescription(
 
 // ---- writes ----
 
+/** Fee-aware submission for Studio Next (fee-based RC stack). Retries the
+ * fee simulation: it runs the leader path, so LLM variance can fail one
+ * attempt while the next succeeds. */
+async function estimateNextFees(
+  client: Client,
+  address: string,
+  functionName: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  args: any[],
+  tries = 4,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
+  let last: unknown;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await client.estimateTransactionFeesForWrite({
+        address,
+        functionName,
+        args,
+        account: client.account,
+      });
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw last;
+}
+
 async function submit(
   client: Client,
   address: string,
@@ -190,6 +218,22 @@ async function submit(
 ): Promise<string> {
   throwIfHalted();
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((client as any).__network === "studio_next") {
+      const est = await estimateNextFees(client, address, functionName, args);
+      const hash = await client.writeContract({
+        address: address as AddressHex,
+        functionName,
+        args,
+        value: 0n,
+        fees: {
+          distribution: est.distribution,
+          messageAllocations: est.messageAllocations,
+          feeValue: est.feeValue,
+        },
+      });
+      return hash as string;
+    }
     const hash = await client.writeContract({
       address: address as AddressHex,
       functionName,
@@ -360,16 +404,29 @@ export async function duplicateProtocol(
   if (!code) {
     throw new Error("Could not read the source protocol’s onchain contract code.");
   }
-  const deployHash = (await client.deployContract({
-    code,
-    args: [gov, 0],
-  })) as string;
-  const deployReceipt = await client.waitForTransactionReceipt({
-    hash: deployHash as TransactionHash,
-    status: TransactionStatus.FINALIZED,
-    interval: 5000,
-    retries: 144,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isNext = (client as any).__network === "studio_next";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deployArgs: any = { code, args: [gov, 0] };
+  if (isNext) {
+    const est = await client.estimateTransactionFees();
+    deployArgs.fees = {
+      distribution: est.distribution,
+      messageAllocations: est.messageAllocations,
+      feeValue: est.feeValue,
+    };
+  }
+  const deployHash = (await client.deployContract(deployArgs)) as string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const waitArgs: any = isNext
+    ? { hash: deployHash as TransactionHash, waitUntil: "finalized", interval: 5000, retries: 144 }
+    : {
+        hash: deployHash as TransactionHash,
+        status: TransactionStatus.FINALIZED,
+        interval: 5000,
+        retries: 144,
+      };
+  const deployReceipt = await client.waitForTransactionReceipt(waitArgs);
   const data = deployReceipt as unknown as {
     txDataDecoded?: { contractAddress?: string };
     data?: { contract_address?: string };
@@ -393,12 +450,18 @@ export async function waitForTx(client: Client, hash: string): Promise<{
 }> {
   try {
     throwIfHalted();
-    const receipt = await client.waitForTransactionReceipt({
-      hash: hash as TransactionHash,
-      status: TransactionStatus.ACCEPTED,
-      interval: 5000,
-      retries: 144,
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const isNext = (client as any).__network === "studio_next";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const waitArgs: any = isNext
+      ? { hash: hash as TransactionHash, waitUntil: "decided", interval: 5000, retries: 144 }
+      : {
+          hash: hash as TransactionHash,
+          status: TransactionStatus.ACCEPTED,
+          interval: 5000,
+          retries: 144,
+        };
+    const receipt = await client.waitForTransactionReceipt(waitArgs);
     const raw = receipt.consensus_data?.leader_receipt as unknown;
     const leader = (Array.isArray(raw) ? raw[0] : raw) as
       | { execution_result?: string; error?: string | null }
@@ -463,7 +526,14 @@ export async function getTxDetail(client: Client, hash: string): Promise<TxDetai
 
   const rawLeader = consensus?.leader_receipt as unknown;
   const leader = (Array.isArray(rawLeader) ? rawLeader[0] : rawLeader) as
-    | { execution_result?: string; error?: string | null; gas_used?: number; stdout?: string; stderr?: string }
+    | {
+        execution_result?: string;
+        error?: string | null;
+        gas_used?: number;
+        stdout?: string;
+        stderr?: string;
+        genvm_result?: { stdout?: string; stderr?: string };
+      }
     | undefined;
 
   let triggered: string[] = [];
@@ -489,7 +559,7 @@ export async function getTxDetail(client: Client, hash: string): Promise<TxDetai
     votes: consensus?.votes,
     validatorCount: consensus?.validators ? Object.keys(consensus.validators).length : undefined,
     triggered,
-    stdout: leader?.stdout,
-    stderr: leader?.stderr,
+    stdout: leader?.stdout ?? leader?.genvm_result?.stdout,
+    stderr: leader?.stderr ?? leader?.genvm_result?.stderr,
   };
 }

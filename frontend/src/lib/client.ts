@@ -1,8 +1,15 @@
 import { createClient } from "genlayer-js";
+import { createClient as createRcClient } from "genlayer-js-rc";
+import { studioDevnet } from "genlayer-js-rc/chains";
 import { getNetwork, isRetiredGovernor, type NetworkKey } from "./chains";
 import { isAddressHex } from "./format";
 
 type ClientConfig = NonNullable<Parameters<typeof createClient>[0]>;
+
+/** Studio Next (fee-based RC stack) must use the matching RC SDK generation. */
+export function isNextNetwork(net: NetworkKey): boolean {
+  return net === "studio_next";
+}
 
 export interface WalletProvider {
   request: (args: { method: string; params?: unknown }) => Promise<unknown>;
@@ -474,7 +481,7 @@ export function subscribeWallet(provider: WalletProvider, handlers: WalletEventH
 
 export function getStoredNetwork(): NetworkKey {
   const v = localStorage.getItem(NET_KEY) as NetworkKey | null;
-  return v ?? "studionet";
+  return v ?? "studio_next";
 }
 
 export function setStoredNetwork(k: NetworkKey) {
@@ -553,13 +560,35 @@ export function setStoredGov(gov: string, network?: NetworkKey) {
 export function makeClient(
   net: NetworkKey,
   opts?: { account?: string; provider?: WalletProvider },
-) {
-  const network = getNetwork(net);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
   // Route RPC through the same-origin /rpc/* proxy (see vite.config.ts):
   // the GenLayer endpoints send no CORS headers for browser origins.
   // Clone the chain: genlayer-js overwrites chain.rpcUrls with `endpoint`,
   // and the shared preset must keep its absolute URLs for the wallet.
   const endpoint = `/rpc/${net}`;
+  if (isNextNetwork(net)) {
+    // Fee-based RC stack: use the matching RC SDK + studioDevnet preset.
+    const chain = {
+      ...studioDevnet,
+      rpcUrls: { default: { http: [endpoint] } },
+      blockExplorers: {
+        default: {
+          name: "GenLayer Studio Next Explorer",
+          url: "https://explorer-studio-dev.genlayer.com",
+        },
+      },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config: any = { chain, endpoint };
+    if (opts?.account) config.account = opts.account;
+    if (opts?.provider) config.provider = opts.provider;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client: any = createRcClient(config);
+    client.__network = net;
+    return client;
+  }
+  const network = getNetwork(net);
   const chain = {
     ...network.chain,
     rpcUrls: { default: { http: [endpoint] } },
@@ -571,5 +600,8 @@ export function makeClient(
   if (opts?.provider) {
     config.provider = opts.provider as NonNullable<ClientConfig["provider"]>;
   }
-  return createClient(config);
+  const client = createClient(config);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (client as any).__network = net;
+  return client;
 }

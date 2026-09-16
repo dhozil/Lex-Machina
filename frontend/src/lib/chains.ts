@@ -1,17 +1,53 @@
 import { localnet, studionet, testnetAsimov, testnetBradbury } from "genlayer-js/chains";
 
-export type NetworkKey = "localnet" | "studionet" | "testnet_bradbury" | "testnet_asimov";
+export type NetworkKey = "studio_next" | "localnet" | "studionet" | "testnet_bradbury" | "testnet_asimov";
+
+// Studio Next (release-candidate Studio, chain 61997). Canonical RPC:
+// https://studio-dev.genlayer.com/api — do not relabel stable studionet (61999).
+// genlayer-js 1.1.8 has no studioDevnet preset, so clone studionet consensus
+// config and override id / RPC / explorer.
+export const studioNext = {
+  ...studionet,
+  id: 61997,
+  name: "Genlayer Studio Next",
+  rpcUrls: {
+    default: { http: ["https://studio-dev.genlayer.com/api"] },
+  },
+  blockExplorers: {
+    default: {
+      name: "GenLayer Studio Next Explorer",
+      url: "https://explorer-studio-dev.genlayer.com",
+    },
+  },
+} as typeof studionet;
+
+/** Minimal chain shape shared by both SDK generations (stable 1.x + RC 2.x). */
+export interface ChainLike {
+  id: number;
+  name: string;
+  rpcUrls: { default: { http: readonly string[] } };
+  nativeCurrency: { name: string; symbol: string; decimals: number };
+  blockExplorers?: { default: { name: string; url: string } };
+}
 
 export interface NetworkPreset {
   key: NetworkKey;
   label: string;
-  chain: typeof localnet;
+  chain: ChainLike;
   explorer: string | null;
   defaultGovernor?: string | null;
   curator?: string | null;
 }
 
 export const NETWORKS: NetworkPreset[] = [
+  {
+    key: "studio_next",
+    label: "Studio Next",
+    chain: studioNext,
+    explorer: "https://explorer-studio-dev.genlayer.com",
+    defaultGovernor: "0xa0c630e337B44e0a269eE1962e003DFb72ca3956",
+    curator: "0x55d18CA9d1044EeFa8f955F96F8eBdB152c09Fa8",
+  },
   { key: "localnet", label: "Localnet", chain: localnet, explorer: "http://localhost:8080" },
   {
     key: "studionet",

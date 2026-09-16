@@ -496,7 +496,7 @@ export default function Console() {
               it first with the CLI or Studio, then copy the address here.
             </p>
             <div className="empty-note mono">
-              Deploy: <code>python deploy/deploy.py --network studionet</code>
+              Deploy: <code>DEPLOYER_PRIVATE_KEY=0x... node deploy/deploy-frontend.mjs studio_next</code>
             </div>
           </section>
         )}

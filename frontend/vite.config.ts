@@ -21,6 +21,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/rpc\/studionet/, "/api"),
       },
+      "/rpc/studio_next": {
+        target: "https://studio-dev.genlayer.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/rpc\/studio_next/, "/api"),
+      },
       "/rpc/testnet_asimov": {
         target: "https://rpc-asimov.genlayer.com",
         changeOrigin: true,

@@ -30,7 +30,27 @@
 
 ---
 
-## Live deployment (Studionet)
+## Live deployment (Studio Next, chain 61997) — default network
+
+| Component | Address |
+|---|---|
+| Governor (profile + listing queue, `contracts_next/`) | `0xa0c630e337B44e0a269eE1962e003DFb72ca3956` |
+| ProtocolVault (Vault-1) | `0xDC28863f2a09009B5c35cE1f35346eA9de28E893` |
+| Curator (AI curation) | `0x55d18CA9d1044EeFa8f955F96F8eBdB152c09Fa8` |
+| Deployer wallet | `0xe8206DC666D66ae1f17df58ff4F485a46Fd19E65` |
+
+Demo deep-link (local frontend):
+
+```text
+http://localhost:5173/#/console?gov=0xa0c630e337B44e0a269eE1962e003DFb72ca3956&net=studio_next
+```
+
+Verified on Next: register ✅, halt adjudication ✅ (validators deliberate;
+sample evidence rejected with reasoning — conservative by design),
+resume ✅, autonomous tune ✅ (threshold 50→45, rules v2),
+curator review ✅ (score 80). Explorer: `https://explorer-studio-dev.genlayer.com`.
+
+## Live deployment (Studionet, chain 61999)
 
 | Component | Address |
 |---|---|
@@ -181,14 +201,18 @@ npm run dev
 # open http://localhost:5173
 ```
 
-Ready-made data (Studionet):
+Ready-made data (Studio Next — default network):
 
-- Governor: `0x3d0d407Ce907032fa3A48E37cd528b6DD2066ca0`
-- Vault: `0x5E29D389a7579aA1c06573E790fA88E8240082bE`
-- Curator: `0x4bc6BCaeDA073602ec3fEd2DD78162077dB333f9`
+- Governor: `0xa0c630e337B44e0a269eE1962e003DFb72ca3956`
+- Vault: `0xDC28863f2a09009B5c35cE1f35346eA9de28E893`
+- Curator: `0x55d18CA9d1044EeFa8f955F96F8eBdB152c09Fa8`
 - Sample claim: `Reentrancy allows repeated withdrawals before balance updates`
 - Sample evidence: `Call trace shows repeated withdraw transfers with only one balance deduction`
 - Sample safe reason: `Patch deployed, balances reconciled, re-audit completed; no active drain path remains`
+
+Studionet equivalents: Governor `0x3d0d407Ce907032fa3A48E37cd528b6DD2066ca0`,
+Vault `0x5E29D389a7579aA1c06573E790fA88E8240082bE`,
+Curator `0x4bc6BCaeDA073602ec3fEd2DD78162077dB333f9`.
 
 Pages: `/` (landing), `/governors` (AI-curated directory), `/how-it-works` (guide), `/console` (live),
 `/protocol/:addr` (protocol detail).
@@ -203,13 +227,17 @@ Via CLI (using a configured `genlayer` wallet):
 python deploy/deploy.py --network studionet
 ```
 
-Via the `genlayer-js` script (operator key through the environment, never commit it):
+Via the `genlayer-js` script (operator key through the environment, never commit it;
+run `npm install` in `frontend/` first so the SDKs resolve):
 
 ```bash
-DEPLOYER_PRIVATE_KEY=0x... node deploy/deploy-frontend.mjs studionet
+DEPLOYER_PRIVATE_KEY=0x... node deploy/deploy-frontend.mjs studio_next
 ```
 
-The script prints a console deep-link with the Governor pre-filled.
+The script deploys Governor + ProtocolVault (+ Curator on Next), registers the
+vault, and prints a console deep-link with the Governor pre-filled.
+`studio_next` deploys `contracts_next/` (GenVM v0.3); other networks deploy
+`contracts/` (v0.2).
 
 ## Deploy frontend (Vercel)
 
@@ -219,7 +247,7 @@ Repo: `https://github.com/dhozil/Lex-Machina`
 2. In Vercel: Add New → Project → import `dhozil/Lex-Machina`.
 3. **Root Directory:** `frontend`. Framework preset: Vite. Build Command:
    `npm run build`. Output Directory: `dist`. No environment variables.
-4. `frontend/vercel.json` already maps `/rpc/studionet|testnet_asimov|testnet_bradbury`
+4. `frontend/vercel.json` already maps `/rpc/studio_next|studionet|testnet_asimov|testnet_bradbury`
    to the real RPCs (server-side proxy, CORS-free). Localnet only works in dev
    (`vite.config.ts`), because Vercel cannot reach `127.0.0.1`.
 
@@ -231,6 +259,9 @@ Repo: `https://github.com/dhozil/Lex-Machina`
 - `genvm-lint check contracts/ProtocolVault.py` — passes
 - `gltest tests/` — **29 passed** (20 direct + 9 integration)
 - Live Studionet: register, halt, resume, and tune verified end-to-end
+- Live Studio Next: register, halt adjudication, resume, autonomous tune,
+  curator review (score 70, listed ✅) verified end-to-end on the
+  `contracts_next/` deployment above
 - Frontend: clean `tsc --noEmit`, successful `npm run build`
 
 Hardening from GenLayer staff review:
@@ -248,12 +279,29 @@ Hardening from GenLayer staff review:
 ## Repo structure
 
 ```text
-contracts/            Governor.py, ProtocolVault.py, Curator.py
+contracts/            Governor.py, ProtocolVault.py, Curator.py (GenVM v0.2, Studionet)
+contracts_next/       same three ported to GenVM v0.3 (Studio Next, chain 61997)
 deploy/               deploy.py, deploy-frontend.mjs
-frontend/             Vite + React + TS + genlayer-js
+frontend/             Vite + React + TS + genlayer-js (1.x) + genlayer-js-rc (Studio Next)
 tests/                direct/ + integration/
 gltest.config.yaml    test network config
 ```
+
+## Studio Next notes (chain 61997)
+
+- Canonical RPC `https://studio-dev.genlayer.com/api`, explorer
+  `https://explorer-studio-dev.genlayer.com`. Never relabel stable studionet.
+- Contracts must target the v0.3 runner
+  (`py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`):
+  `import genlayer as gl`, `gl.contract.Contract`, `gl.contract.get_at`,
+  `gl.vm.run_nondet` (renamed), `emit(on="decided")`, explicit `Address()`
+  conversion for address args. See the
+  [migration guide](https://sdk.genlayer.com/main/_static/ai/api.txt).
+- The Next stack is fee-based: every write needs `estimateTransactionFeesForWrite`
+  (with retry — the simulation runs the leader path, so one attempt can fail
+  while the next succeeds) and emits need message allocations, which the
+  estimator derives. The frontend does this automatically on `studio_next`.
+- Reads may lag finalization by seconds on the RC stack; the UI retries.
 
 ## Security notes
 

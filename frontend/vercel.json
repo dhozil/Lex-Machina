@@ -6,6 +6,10 @@
       "destination": "https://studio.genlayer.com/api/:path*"
     },
     {
+      "source": "/rpc/studio_next/:path*",
+      "destination": "https://studio-dev.genlayer.com/api/:path*"
+    },
+    {
       "source": "/rpc/testnet_asimov/:path*",
       "destination": "https://rpc-asimov.genlayer.com/:path*"
     },
