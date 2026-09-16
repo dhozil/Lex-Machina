@@ -1,8 +1,10 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 import json
 
-from genlayer import *
+import genlayer as gl
+from genlayer.types import *
+from genlayer.storage import TreeMap, DynArray
 
 ERROR_EXPECTED = "[EXPECTED]"
 ERROR_LLM = "[LLM_ERROR]"
@@ -12,7 +14,13 @@ SCORE_TOLERANCE = 12
 
 
 def _as_addr(value):
-    return value if isinstance(value, Address) else Address(value)
+    if isinstance(value, Address):
+        return value
+    if isinstance(value, int) and not isinstance(value, bool):
+        if value < 0 or value >= 1 << 160:
+            raise gl.vm.UserError(f"{ERROR_EXPECTED} Invalid address integer")
+        return Address(f"0x{value:040x}")
+    return Address(value)
 
 
 def _addr_key(value):
@@ -81,7 +89,10 @@ def _handle_leader_error(leaders_res: gl.vm.Result, leader_fn) -> bool:
         leader_fn()
         return False
     except gl.vm.UserError as e:
-        validator_msg = getattr(e, "message", "") or str(e)
+        validator_msg = getattr(e, "data", None)
+        if validator_msg is None:
+            validator_msg = getattr(e, "message", "") or str(e)
+        validator_msg = str(validator_msg)
         if validator_msg.startswith(ERROR_EXPECTED):
             return validator_msg == leader_msg
         return False
@@ -89,7 +100,7 @@ def _handle_leader_error(leaders_res: gl.vm.Result, leader_fn) -> bool:
         return False
 
 
-class Curator(gl.Contract):
+class Curator(gl.contract.Contract):
     """AI-consensus curator for autonomous governors.
 
     Anyone governing through a Lex Machina Governor can put it forward, but
@@ -214,13 +225,13 @@ class Curator(gl.Contract):
             self.review_seen[key] = True
 
     def _require_governor_owner(self, addr) -> None:
-        gov = gl.get_contract_at(_as_addr(addr))
+        gov = gl.contract.get_at(_as_addr(addr))
         state = gov.view().get_governance_state()
         if str(state.get("owner", "")).lower() != str(gl.message.sender_address).lower():
             raise gl.vm.UserError(f"{ERROR_EXPECTED} Only the governor owner can submit it")
 
     def _read_profile(self, key: str) -> dict:
-        gov = gl.get_contract_at(Address(key))
+        gov = gl.contract.get_at(Address(key))
         view = gov.view()
         try:
             profile = view.get_governor_profile()
@@ -269,7 +280,7 @@ class Curator(gl.Contract):
                 return False
             return abs(leader["score"] - validator["score"]) <= SCORE_TOLERANCE
 
-        result = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        result = gl.vm.run_nondet(leader_fn, validator_fn)
         result["listed"] = bool(result["listed"]) and result["score"] >= self.min_score
         return result
 

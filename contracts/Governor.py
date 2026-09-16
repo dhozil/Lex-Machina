@@ -1,8 +1,10 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 import json
 
-from genlayer import *
+import genlayer as gl
+from genlayer.types import *
+from genlayer.storage import TreeMap, DynArray
 
 ERROR_EXPECTED = "[EXPECTED]"
 ERROR_LLM = "[LLM_ERROR]"
@@ -17,11 +19,11 @@ def _as_addr(value):
     if isinstance(value, Address):
         return value
     if isinstance(value, int) and not isinstance(value, bool):
-        # Studio's web form serializes addresses as integers; the runner's
-        # Address(int) overflows on them, so convert via fixed-width bytes.
+        # Studio's web form serializes addresses as integers; convert via
+        # zero-padded hex (the v0.3 Address takes str/bytes, not int).
         if value < 0 or value >= 1 << 160:
             raise gl.vm.UserError(f"{ERROR_EXPECTED} Invalid address integer")
-        return Address(value.to_bytes(20, "big"))
+        return Address(f"0x{value:040x}")
     return value if isinstance(value, Address) else Address(value)
 
 
@@ -124,7 +126,10 @@ def _handle_leader_error(leaders_res: gl.vm.Result, leader_fn) -> bool:
         leader_fn()
         return False
     except gl.vm.UserError as e:
-        validator_msg = getattr(e, "message", "") or str(e)
+        validator_msg = getattr(e, "data", None)
+        if validator_msg is None:
+            validator_msg = getattr(e, "message", "") or str(e)
+        validator_msg = str(validator_msg)
         if validator_msg.startswith(ERROR_EXPECTED):
             return validator_msg == leader_msg
         return False
@@ -132,7 +137,7 @@ def _handle_leader_error(leaders_res: gl.vm.Result, leader_fn) -> bool:
         return False
 
 
-class Governor(gl.Contract):
+class Governor(gl.contract.Contract):
     """Self-Governing Protocol.
 
     Governs registered protocols, verifies exploit claims through an LLM
@@ -232,7 +237,7 @@ class Governor(gl.Contract):
 
     @gl.public.view
     def get_protocol_state(self, addr: Address) -> dict:
-        vault = gl.get_contract_at(_as_addr(addr))
+        vault = gl.contract.get_at(_as_addr(addr))
         return vault.view().get_state()
 
     @gl.public.view
@@ -284,7 +289,7 @@ class Governor(gl.Contract):
     def _check_listing_compatible(self, addr) -> None:
         """A protocol is listable when it exposes get_state() and declares
         this Governor. Incompatible targets revert, which rejects the call."""
-        vault = gl.get_contract_at(_as_addr(addr))
+        vault = gl.contract.get_at(_as_addr(addr))
         state = vault.view().get_state()
         declared = str(state.get("governor", ""))
         if declared.lower() != str(gl.message.contract_address).lower():
@@ -393,8 +398,8 @@ class Governor(gl.Contract):
             if not already:
                 self.halted[key] = True
                 self.exploit_count += 1
-                vault = gl.get_contract_at(addr)
-                vault.emit(on="accepted").pause()
+                vault = gl.contract.get_at(addr)
+                vault.emit(on="decided").pause()
                 self._record(
                     "halt",
                     addr,
@@ -411,8 +416,8 @@ class Governor(gl.Contract):
 
         if verdict["confirmed"]:
             self.halted[_addr_key(addr)] = False
-            vault = gl.get_contract_at(addr)
-            vault.emit(on="accepted").unpause()
+            vault = gl.contract.get_at(addr)
+            vault.emit(on="decided").unpause()
             self._record(
                 "resume",
                 addr,
@@ -452,7 +457,7 @@ class Governor(gl.Contract):
                 return False
             return _tune_consistent(leader, validator, current)
 
-        result = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        result = gl.vm.run_nondet(leader_fn, validator_fn)
         self._apply_tune(result)
         return result
 
@@ -513,7 +518,7 @@ class Governor(gl.Contract):
                 return False
             return _confidence_close(leader["confidence"], validator["confidence"])
 
-        return gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        return gl.vm.run_nondet(leader_fn, validator_fn)
 
     # ----------------------------------------------------------- tuning apply
 

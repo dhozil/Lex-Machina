@@ -1,10 +1,8 @@
 """Deploy the Self-Governing Protocol to a GenLayer network.
 
-Usage (from project root):
-    python deploy/deploy.py --network studionet
-
-Requires the `genlayer` CLI (npm install -g genlayer) and a configured account.
-StudioNet is gasless, so no funding is needed.
+NOTE: the `genlayer` CLI only knows pre-v0.3 networks and cannot deploy the
+v0.3 contracts. Use deploy-frontend.mjs instead:
+    DEPLOYER_PRIVATE_KEY=0x... node deploy/deploy-frontend.mjs studio_next
 """
 
 import argparse

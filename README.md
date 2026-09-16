@@ -34,7 +34,7 @@
 
 | Component | Address |
 |---|---|
-| Governor (profile + listing queue, `contracts_next/`) | `0xa0c630e337B44e0a269eE1962e003DFb72ca3956` |
+| Governor (profile + listing queue, `contracts/`) | `0xa0c630e337B44e0a269eE1962e003DFb72ca3956` |
 | ProtocolVault (Vault-1) | `0xDC28863f2a09009B5c35cE1f35346eA9de28E893` |
 | Curator (AI curation) | `0x55d18CA9d1044EeFa8f955F96F8eBdB152c09Fa8` |
 | Deployer wallet | `0xe8206DC666D66ae1f17df58ff4F485a46Fd19E65` |
@@ -236,8 +236,7 @@ DEPLOYER_PRIVATE_KEY=0x... node deploy/deploy-frontend.mjs studio_next
 
 The script deploys Governor + ProtocolVault (+ Curator on Next), registers the
 vault, and prints a console deep-link with the Governor pre-filled.
-`studio_next` deploys `contracts_next/` (GenVM v0.3); other networks deploy
-`contracts/` (v0.2).
+All networks deploy `contracts/` (GenVM v0.3).
 
 ## Deploy frontend (Vercel)
 
@@ -255,13 +254,12 @@ Repo: `https://github.com/dhozil/Lex-Machina`
 
 ## Verification
 
-- `genvm-lint check contracts/Governor.py` — passes
-- `genvm-lint check contracts/ProtocolVault.py` — passes
-- `gltest tests/` — **29 passed** (20 direct + 9 integration)
+- `contracts/` verified by on-chain deployment + full flow on Studio Next
+  (the local `gltest` suite and `genvm-lint 0.11` target the pre-v0.3 stack)
 - Live Studionet: register, halt, resume, and tune verified end-to-end
 - Live Studio Next: register, halt adjudication, resume, autonomous tune,
   curator review (score 70, listed ✅) verified end-to-end on the
-  `contracts_next/` deployment above
+  `contracts/` deployment above
 - Frontend: clean `tsc --noEmit`, successful `npm run build`
 
 Hardening from GenLayer staff review:
@@ -270,7 +268,7 @@ Hardening from GenLayer staff review:
 - Claim/evidence/reason must be non-empty (plus length caps).
 - Comparative validators (re-run + compare verdicts), not leader-only.
 - LLM `reasoning` is never stored/used for decisions.
-- Runner version pinned (`py-genlayer:1jb45aa8…`).
+- Runner version pinned (`py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`).
 - Prompt-injection framing: user inputs treated as untrusted data with delimiters.
 - Nondet blocks never touch contract storage (module-level helpers).
 
@@ -279,8 +277,7 @@ Hardening from GenLayer staff review:
 ## Repo structure
 
 ```text
-contracts/            Governor.py, ProtocolVault.py, Curator.py (GenVM v0.2, Studionet)
-contracts_next/       same three ported to GenVM v0.3 (Studio Next, chain 61997)
+contracts/            Governor.py, ProtocolVault.py, Curator.py (GenVM v0.3, Studio Next)
 deploy/               deploy.py, deploy-frontend.mjs
 frontend/             Vite + React + TS + genlayer-js (1.x) + genlayer-js-rc (Studio Next)
 tests/                direct/ + integration/

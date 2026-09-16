@@ -1,6 +1,8 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
-from genlayer import *
+import genlayer as gl
+from genlayer.types import *
+from genlayer.storage import TreeMap, DynArray
 
 ERROR_EXPECTED = "[EXPECTED]"
 
@@ -9,15 +11,15 @@ def _as_addr(value):
     if isinstance(value, Address):
         return value
     if isinstance(value, int) and not isinstance(value, bool):
-        # Studio's web form serializes addresses as integers; the runner's
-        # Address(int) overflows on them, so convert via fixed-width bytes.
+        # Studio's web form serializes addresses as integers; convert via
+        # zero-padded hex (the v0.3 Address takes str/bytes, not int).
         if value < 0 or value >= 1 << 160:
             raise gl.vm.UserError(f"{ERROR_EXPECTED} Invalid address integer")
-        return Address(value.to_bytes(20, "big"))
+        return Address(f"0x{value:040x}")
     return Address(value)
 
 
-class ProtocolVault(gl.Contract):
+class ProtocolVault(gl.contract.Contract):
     """A governed protocol. The Governor can pause/unpause it and reads its
     live state to decide whether the protocol is healthy or exploited."""
 

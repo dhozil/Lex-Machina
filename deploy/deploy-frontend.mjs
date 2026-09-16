@@ -9,8 +9,7 @@
  * network: studio_next (default) | studionet | localnet | testnet_bradbury | testnet_asimov
  *
  * Studio Next (chain 61997) runs the fee-based GenVM v0.3 stack, so it uses
- * the matching RC SDK + contracts_next/ + fee estimation. Stable networks
- * keep the 1.x SDK + contracts/ (v0.2).
+ * the matching RC SDK + fee estimation. Stable networks keep the 1.x SDK.
  *
  * Provide DEPLOYER_PRIVATE_KEY through the environment only. Do not paste it
  * into source control, chat, or shell history if the shell records history.
@@ -25,9 +24,7 @@ import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const network = process.argv[2] || "studio_next";
 const isNext = network === "studio_next";
-// Studio Next runs the GenVM v0.3 stack: deploy the ported contracts_next/
-// there; stable networks keep using contracts/ (v0.2).
-const contractsDir = path.join(__dirname, "..", isNext ? "contracts_next" : "contracts");
+const contractsDir = path.join(__dirname, "..", "contracts");
 const CONSOLE_URL = process.env.CONSOLE_URL || "http://localhost:5173";
 
 const operatorKey = process.env.DEPLOYER_PRIVATE_KEY;
