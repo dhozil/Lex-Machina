@@ -47,8 +47,20 @@ http://localhost:5173/#/console?gov=0xa0c630e337B44e0a269eE1962e003DFb72ca3956&n
 
 Verified on Next: register ✅, halt adjudication ✅ (validators deliberate;
 sample evidence rejected with reasoning — conservative by design),
-resume ✅, autonomous tune ✅ (threshold 50→45, rules v2),
-curator review ✅ (score 80). Explorer: `https://explorer-studio-dev.genlayer.com`.
+resume ✅, autonomous tune ✅, curator review ✅ (score 70, listed ✅).
+Explorer: `https://explorer-studio-dev.genlayer.com`.
+
+Demo video: `https://x.com/cobersky/status/2100161864303014136`
+
+### Steps to verify the governance flow (Studio Next)
+
+1. Open the deep-link above, connect a wallet, approve the switch to chain 61997.
+2. Read the live state (risk threshold, rules version, protocols).
+3. `request_listing` with another compatible vault → approve it from the Listing requests panel.
+4. `propose_halt` with a claim + evidence → independent validators deliberate; the vault pauses only if consensus confirms.
+5. `prove_safe` with a fix reason → safety adjudication unpauses the vault.
+6. `monitor_and_tune` → threshold and rules text update with no vote.
+7. Open `/governors` → Lex Machina appears with its AI score badge (70, listed).
 
 ## Live deployment (Studionet, chain 61999)
 
