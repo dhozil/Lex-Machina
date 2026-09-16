@@ -44,7 +44,7 @@ const STEPS = [
   {
     n: "9",
     title: "Browse and promote governors",
-    body: "Open Governors to see AI-verified deployments with their trust scores. Governor owners can set their on-chain name and description from the console, then submit the deployment for AI review — no human decides what gets promoted.",
+    body: "Open Governors to see AI-verified deployments with their trust scores. Governor owners can set their on-chain name and description from the console, then submit the deployment for AI review — no human decides what gets promoted. Scoring rubric (bar 70): meaningful name (0–25), meaningful description (0–25), sane non-empty rules (0–20), threshold within 1–200 (0–10), at least one governed protocol (0–20). Fill the profile and register a protocol before submitting.",
   },
 ];
 
